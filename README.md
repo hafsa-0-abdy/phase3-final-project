@@ -42,18 +42,18 @@ alembic upgrade head
 python3 app.py
 
 
-8. Access the app in your browser at http://127.0.0.1:8000.
+
 
 
 
 ## Slide Link
 
-You can view the slide link on Google Slides.
+You can view the slide link on Google Slides (https://docs.google.com/presentation/d/1gLUky3Tk1GxodV_MjFTfYgLdnZI373-G8NGMVwLFeXc/edit?usp=sharing)
 
 
 ## GitHub Link
 
-You can view the GitHub repository on GitHub.
+You can view the GitHub repository on GitHub (https://github.com/hafsa-0-abdy/phase3-final-project.git)
 
 
 

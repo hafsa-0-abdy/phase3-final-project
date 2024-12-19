@@ -1,34 +1,39 @@
-import sqlite3
+from .db import get_session
+from .db.models import Address
 
 def create_address(customer_id, address):
-    connection = sqlite3.connect("food_delivery.db")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO Addresses (customer_id, address) VALUES (?, ?)", (customer_id, address))
-    connection.commit()
-    connection.close()
+    session = get_session()
+    new_address = Address(customer_id=customer_id, address=address)
+    session.add(new_address)
+    session.commit()
+    session.close()
     print("Address added successfully!")
 
 def read_addresses():
-    connection = sqlite3.connect("food_delivery.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM Addresses")
-    rows = cursor.fetchall()
-    connection.close()
-    for row in rows:
-        print(row)
+    session = get_session()
+    addresses = session.query(Address).all()
+    session.close()
+    for address in addresses:
+        print(f"{address.id} - {address.customer_id} - {address.address}")
 
 def update_address(customer_id, new_address):
-    connection = sqlite3.connect("food_delivery.db")
-    cursor = connection.cursor()
-    cursor.execute("UPDATE Addresses SET address = ? WHERE customer_id = ?", (new_address, customer_id))
-    connection.commit()
-    connection.close()
-    print("Address updated successfully!")
+    session = get_session()
+    address = session.query(Address).filter(Address.customer_id == customer_id).first()
+    if address:
+        address.address = new_address
+        session.commit()
+        print("Address updated successfully!")
+    else:
+        print("Address not found!")
+    session.close()
 
 def delete_address(customer_id):
-    connection = sqlite3.connect("food_delivery.db")
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM Addresses WHERE customer_id = ?", (customer_id,))
-    connection.commit()
-    connection.close()
-    print("Address deleted successfully!")
+    session = get_session()
+    address = session.query(Address).filter(Address.customer_id == customer_id).first()
+    if address:
+        session.delete(address)
+        session.commit()
+        print("Address deleted successfully!")
+    else:
+        print("Address not found!")
+    session.close()

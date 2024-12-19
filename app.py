@@ -1,11 +1,11 @@
-# app.py
-
 from lib.customers import create_customer, read_customers, update_customer, delete_customer
 from lib.orders import create_order, read_orders
 from lib.addresses import create_address, read_addresses
-import sqlite3
+from lib.db import init_db
 
 def main_menu():
+    init_db()
+
     while True:
         print("\nFood Delivery App - Menu")
         print("1. Manage Customers")
@@ -24,9 +24,7 @@ def main_menu():
             if sub_choice == "1":
                 create_customer(input("Name: "), input("Phone: "))
             elif sub_choice == "2":
-                customers = read_customers()
-                for customer in customers:
-                    print(customer)
+                read_customers()
             elif sub_choice == "3":
                 update_customer(int(input("Customer ID: ")), input("New Name: "), input("New Phone: "))
             elif sub_choice == "4":
@@ -38,23 +36,15 @@ def main_menu():
             if sub_choice == "1":
                 create_address(int(input("Customer ID: ")), input("Address: "))
             elif sub_choice == "2":
-                addresses = read_addresses()
-                for address in addresses:
-                    print(address)
+                read_addresses()
         elif choice == "3":
             print("\n1. Place Order")
             print("2. View Orders")
             sub_choice = input("Choose: ")
             if sub_choice == "1":
-                order = {
-                    "user_id": int(input("Customer ID: ")),
-                    "items": [{"item_id": int(input("Item ID: ")), "quantity": int(input("Quantity: ")), "price": float(input("Price: "))}]
-                }
-                create_order(order)
+                create_order(int(input("Customer ID: ")), input("Item Name: "), int(input("Quantity: ")), float(input("Price: ")))
             elif sub_choice == "2":
-                orders = read_orders()
-                for order in orders:
-                    print(order)
+                read_orders()
         elif choice == "4":
             print("Exiting... Goodbye!")
             break

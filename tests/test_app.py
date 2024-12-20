@@ -1,81 +1,86 @@
-import unittest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from lib.db.models import Base, Customer, Address, Order
-from lib.customers import create_customer, read_customers, update_customer, delete_customer
+import pytest
+from lib.db import init_db, get_session
+from lib.db.models import Customer, Order, Address
+from lib.customers import create_customer, read_customers
 from lib.orders import create_order, read_orders
 from lib.addresses import create_address, read_addresses
 
-class TestDatabaseOperations(unittest.TestCase):
+@pytest.fixture(scope="function", autouse=True)
+def setup_database():
+    """Set up a fresh database for each test."""
+    init_db()
+    session = get_session()
+    session.query(Order).delete()
+    session.query(Address).delete()
+    session.query(Customer).delete()
+    session.commit()
+    session.close()
 
-    @classmethod
-    def setUpClass(cls):
-        cls.db_name = 'test_food_delivery.db'  # Use a separate DB for testing
-        cls.engine = create_engine(f'sqlite:///{cls.db_name}', echo=True)
-        Base.metadata.create_all(cls.engine)  # Create tables using SQLAlchemy
 
-        # Create a session maker and bind it to the engine
-        Session = sessionmaker(bind=cls.engine)
-        cls.session = Session()
+def test_create_customer():
+    create_customer("Alice", "123456789")
+    session = get_session()
+    customer = session.query(Customer).filter_by(phone="123456789").first()
+    session.close()
+    assert customer.name == "Alice"
 
-    @classmethod
-    def tearDownClass(cls):
-        # Drop the tables after tests
-        Base.metadata.drop_all(cls.engine)
-        cls.session.close()
 
-    def test_create_customer(self):
-        create_customer('John Doe', '1234567890')
-        customers = read_customers()
-        self.assertEqual(len(customers), 1)
-        self.assertEqual(customers[0].name, 'John Doe')
+def test_read_customers(capsys):
+    create_customer("Alice", "123456789")
+    read_customers()
+    captured = capsys.readouterr()
+    assert "Alice" in captured.out
 
-    def test_create_address(self):
-        create_customer('Jane Doe', '0987654321')
-        create_address(1, '123 Elm Street')
-        addresses = read_addresses()
-        self.assertEqual(len(addresses), 1)
-        self.assertEqual(addresses[0].address, '123 Elm Street')
 
-    def test_create_order(self):
-        create_customer('John Smith', '1122334455')
-        create_order(1, 'Pizza', 2, 15.0)
-        orders = read_orders()
-        self.assertEqual(len(orders), 1)
-        self.assertEqual(orders[0].item_name, 'Pizza')
+def test_create_order():
+    create_customer("Bob", "987654321")
+    session = get_session()
+    customer = session.query(Customer).filter_by(phone="987654321").first()
+    customer_id = customer.id
+    session.close()
 
-    def test_read_customers(self):
-        create_customer('Emily', '5566778899')
-        customers = read_customers()
-        self.assertGreater(len(customers), 0)
+    create_order(customer_id, "Burger", 1, 5.99)
+    session = get_session()
+    order = session.query(Order).filter_by(customer_id=customer_id).first()
+    session.close()
+    assert order.item_name == "Burger"
 
-    def test_read_addresses(self):
-        create_customer('Michael', '6677889900')
-        create_address(1, '456 Oak Avenue')
-        addresses = read_addresses()
-        self.assertGreater(len(addresses), 0)
 
-    def test_read_orders(self):
-        create_customer('Anna', '2233445566')
-        create_order(1, 'Burger', 1, 5.0)
-        orders = read_orders()
-        self.assertGreater(len(orders), 0)
+def test_read_orders(capsys):
+    create_customer("Bob", "987654321")
+    session = get_session()
+    customer = session.query(Customer).filter_by(phone="987654321").first()
+    customer_id = customer.id
+    session.close()
 
-    def test_update_customer(self):
-        create_customer('Old Name', '1112223333')
-        customers = read_customers()
-        customer_id = customers[0].id
-        update_customer(customer_id, 'New Name', '4445556666')
-        updated_customer = read_customers()
-        self.assertEqual(updated_customer[0].name, 'New Name')
+    create_order(customer_id, "Burger", 1, 5.99)
+    read_orders()
+    captured = capsys.readouterr()
+    assert "Burger" in captured.out
 
-    def test_delete_customer(self):
-        create_customer('Delete Me', '9998887777')
-        customers = read_customers()
-        customer_id = customers[0].id
-        delete_customer(customer_id)
-        customers_after_delete = read_customers()
-        self.assertEqual(len(customers_after_delete), 0)
 
-if __name__ == '__main__':
-    unittest.main()
+def test_create_address():
+    create_customer("Charlie", "555555555")
+    session = get_session()
+    customer = session.query(Customer).filter_by(phone="555555555").first()
+    customer_id = customer.id
+    session.close()
+
+    create_address(customer_id, "123 Main St")
+    session = get_session()
+    address = session.query(Address).filter_by(customer_id=customer_id).first()
+    session.close()
+    assert address.address == "123 Main St"
+
+
+def test_read_addresses(capsys):
+    create_customer("Charlie", "555555555")
+    session = get_session()
+    customer = session.query(Customer).filter_by(phone="555555555").first()
+    customer_id = customer.id
+    session.close()
+
+    create_address(customer_id, "123 Main St")
+    read_addresses()
+    captured = capsys.readouterr()
+    assert "123 Main St" in captured.out

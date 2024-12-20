@@ -56,6 +56,10 @@ You can view the slide link on Google Slides (https://docs.google.com/presentati
 You can view the GitHub repository on GitHub (https://github.com/hafsa-0-abdy/phase3-final-project.git)
 
 
+## Video Link
+You can view the video link on (https://www.awesomescreenshot.com/video/34846278?key=d9efbe97055dadcbad9c268202941464)
+
+
 
 ---
 
